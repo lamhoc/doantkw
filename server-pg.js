@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
@@ -9,8 +10,17 @@ const app = express();
 const poolConfig = {
     connectionString: process.env.DB_CONNECTION_STRING || 'postgresql://localhost/ql_boardgame'
 };
-if (process.env.DB_CONNECTION_STRING && process.env.DB_CONNECTION_STRING.startsWith('postgres')) {
-    poolConfig.ssl = { rejectUnauthorized: false };
+
+if (process.env.DB_CONNECTION_STRING) {
+    try {
+        const url = new URL(process.env.DB_CONNECTION_STRING);
+        const host = url.hostname.toLowerCase();
+        if (host !== 'localhost' && host !== '127.0.0.1' && host !== '::1') {
+            poolConfig.ssl = { rejectUnauthorized: false };
+        }
+    } catch (err) {
+        poolConfig.ssl = { rejectUnauthorized: false };
+    }
 }
 
 const pool = new Pool(poolConfig);
@@ -192,16 +202,16 @@ app.get('/api/profile', (req, res) => {
 app.get('/api/tables', async (req, res) => {
     try {
         const result = await pool.query(
-            `SELECT b.maban,
-                    b.tenban,
-                    CASE WHEN hd.mahd IS NOT NULL THEN 'Đã đặt' ELSE 'Trống' END AS trangthai,
-                    hd.mahd,
-                    hd.giovao,
-                    hd.tongtien,
-                    hd.trangthaithanhtoan,
-                    hd.makh,
-                    COALESCE(kh.tenkh, 'Khách lẻ') AS khachhang,
-                    nv.tennv AS nhanvien
+            `SELECT b.maban AS "MaBan",
+                    b.tenban AS "TenBan",
+                    CASE WHEN hd.mahd IS NOT NULL THEN 'Đã đặt' ELSE 'Trống' END AS "TrangThai",
+                    hd.mahd AS "MaHD",
+                    hd.giovao AS "GioVao",
+                    hd.tongtien AS "TongTien",
+                    hd.trangthaithanhtoan AS "TrangThaiThanhToan",
+                    hd.makh AS "MaKH",
+                    COALESCE(kh.tenkh, 'Khách lẻ') AS "KhachHang",
+                    nv.tennv AS "NhanVien"
              FROM ban b
              LEFT JOIN (SELECT * FROM hoadon WHERE giora IS NULL) hd ON b.maban = hd.maban
              LEFT JOIN khachhang kh ON hd.makh = kh.makh
@@ -306,7 +316,9 @@ app.post('/api/book-table', async (req, res) => {
 
 app.get('/api/boardgames', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM boardgame');
+        const result = await pool.query(
+            `SELECT magame AS "MaGame", tengame AS "TenGame", giathue AS "GiaThue", tinhtrang AS "TinhTrang" FROM boardgame`
+        );
         return res.json(result.rows);
     } catch (err) {
         console.error('[BOARDGAME LIST ERROR]', err);
@@ -359,7 +371,9 @@ app.delete('/api/boardgames/:id', authorize(['admin']), async (req, res) => {
 
 app.get('/api/drinks', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM sanpham');
+        const result = await pool.query(
+            `SELECT masp AS "MaSP", tensp AS "TenSP", dongia AS "DonGia", donvitinh AS "DonViTinh" FROM sanpham`
+        );
         return res.json(result.rows);
     } catch (err) {
         console.error('[DRINKS LIST ERROR]', err);
@@ -413,7 +427,7 @@ app.delete('/api/drinks/:id', authorize(['admin']), async (req, res) => {
 app.get('/api/invoices', authorize(['admin', 'staff']), async (req, res) => {
     try {
         const result = await pool.query(
-            `SELECT hd.mahd, b.tenban, hd.tongtien, hd.trangthaithanhtoan, hd.giovao
+            `SELECT hd.mahd AS "MaHD", b.tenban AS "TenBan", hd.tongtien AS "TongTien", hd.trangthaithanhtoan AS "TrangThaiThanhToan", hd.giovao AS "GioVao"
              FROM hoadon hd
              JOIN ban b ON hd.maban = b.maban
              ORDER BY hd.giovao DESC`
@@ -429,9 +443,9 @@ app.get('/api/invoices/:id', authorize(['admin', 'staff']), async (req, res) => 
     try {
         const { id } = req.params;
         const invoiceResult = await pool.query(
-            `SELECT hd.mahd, b.tenban, nv.tennv AS nhanvien,
-                    COALESCE(kh.tenkh, 'Khách lẻ') AS khachhang,
-                    hd.giovao, hd.giora, hd.tongtien, hd.trangthaithanhtoan
+            `SELECT hd.mahd AS "MaHD", b.tenban AS "TenBan", nv.tennv AS "NhanVien",
+                    COALESCE(kh.tenkh, 'Khách lẻ') AS "KhachHang",
+                    hd.giovao AS "GioVao", hd.giora AS "GioRa", hd.tongtien AS "TongTien", hd.trangthaithanhtoan AS "TrangThaiThanhToan"
              FROM hoadon hd
              JOIN ban b ON hd.maban = b.maban
              JOIN nhanvien nv ON hd.manv = nv.manv
@@ -442,7 +456,7 @@ app.get('/api/invoices/:id', authorize(['admin', 'staff']), async (req, res) => 
         if (!invoiceResult.rows.length) return sendError(res, 404, 'Không tìm thấy hóa đơn');
 
         const drinksResult = await pool.query(
-            `SELECT sp.tensp, ctsp.soluong, ctsp.thanhtien
+            `SELECT sp.tensp AS "TenSP", ctsp.soluong AS "SoLuong", ctsp.thanhtien AS "ThanhTien"
              FROM chitiet_sanpham ctsp
              JOIN sanpham sp ON ctsp.masp = sp.masp
              WHERE ctsp.mahd = $1`,
@@ -450,7 +464,7 @@ app.get('/api/invoices/:id', authorize(['admin', 'staff']), async (req, res) => 
         );
 
         const gamesResult = await pool.query(
-            `SELECT bg.tengame, ctg.soluong, ctg.thanhtien
+            `SELECT bg.tengame AS "TenGame", ctg.soluong AS "SoLuong", ctg.thanhtien AS "ThanhTien"
              FROM chitiet_thuegame ctg
              JOIN boardgame bg ON ctg.magame = bg.magame
              WHERE ctg.mahd = $1`,
@@ -500,7 +514,11 @@ app.put('/api/invoices/:id', authorize(['admin', 'staff']), async (req, res) => 
 
 app.get('/api/customers', authorize(['admin']), async (req, res) => {
     try {
-        const result = await pool.query('SELECT makh, tenkh, sodienthoai, diemtichluy FROM khachhang ORDER BY makh');
+        const result = await pool.query(
+            `SELECT makh AS "MaKH", tenkh AS "TenKH", sodienthoai AS "SoDienThoai", diemtichluy AS "DiemTichLuy"
+             FROM khachhang
+             ORDER BY makh`
+        );
         return res.json(result.rows);
     } catch (err) {
         console.error('[CUSTOMER LIST ERROR]', err);
@@ -528,12 +546,12 @@ app.get('/api/stats/summary', async (req, res) => {
     try {
         const result = await pool.query(
             `SELECT
-                (SELECT COUNT(*) FROM boardgame) AS totalgames,
-                (SELECT COUNT(*) FROM sanpham) AS totaldrinks,
-                (SELECT COUNT(*) FROM hoadon) AS totalinvoices,
-                (SELECT COUNT(*) FROM khachhang) AS totalcustomers,
-                SUM(CASE WHEN hd.mahd IS NULL THEN 1 ELSE 0 END) AS availabletables,
-                SUM(CASE WHEN hd.mahd IS NOT NULL THEN 1 ELSE 0 END) AS bookedtables
+                (SELECT COUNT(*) FROM boardgame) AS "TotalGames",
+                (SELECT COUNT(*) FROM sanpham) AS "TotalDrinks",
+                (SELECT COUNT(*) FROM hoadon) AS "TotalInvoices",
+                (SELECT COUNT(*) FROM khachhang) AS "TotalCustomers",
+                SUM(CASE WHEN hd.mahd IS NULL THEN 1 ELSE 0 END) AS "AvailableTables",
+                SUM(CASE WHEN hd.mahd IS NOT NULL THEN 1 ELSE 0 END) AS "BookedTables"
              FROM ban b
              LEFT JOIN (SELECT maban FROM hoadon WHERE giora IS NULL) hd ON b.maban = hd.maban`
         );
