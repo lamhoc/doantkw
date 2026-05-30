@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Quản Lý Board Game - BG-System</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Global Spinner */
+        #globalSpinner {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.8); z-index: 9999;
+            display: none; align-items: center; justify-content: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="globalSpinner">
+        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+    <div id="loginScreen" class="login-screen">
+        <div class="login-card">
+            <h2>Đăng nhập</h2>
+            <div class="login-tabs">
+                <label><input type="radio" name="loginType" value="employee" checked> Nhân viên / Admin</label>
+                <label><input type="radio" name="loginType" value="customer"> Khách hàng</label>
+            </div>
+            <div id="employeeLogin" class="login-fields">
+                <div class="form-group"><label>Tài khoản:</label><input type="text" id="loginUsername"
+                        placeholder="admin / staff1"></div>
+                <div class="form-group"><label>Mật khẩu:</label><input type="password" id="loginPassword"
+                        placeholder="123456"></div>
+            </div>
+            <div id="customerLogin" class="login-fields" style="display:none;">
+                <div class="form-group"><label>Họ và tên:</label><input type="text" id="loginName"
+                        placeholder="Nguyễn Văn A"></div>
+                <div class="form-group"><label>Số điện thoại:</label><input type="text" id="loginPhone"
+                        placeholder="0987654321"></div>
+                <button class="btn-save full-width" onclick="registerCustomer()" style="margin-bottom: 10px;">Đăng ký khách hàng</button>
+            </div>
+            <button class="btn-add full-width" onclick="login()">Đăng nhập</button>
+            <button class="btn-delete full-width" onclick="showGuestDashboard()" style="margin-top: 10px; background: #95a5a6; border: none; border-radius: 8px; cursor: pointer; color: white; padding: 12px; font-weight: 600;">Quay lại trang chủ</button>
+            <p class="login-note">Khách hàng đăng nhập bằng số điện thoại hoặc đăng ký mới bằng họ tên và số điện thoại. Nhân viên/Admin sử dụng tài khoản và mật khẩu.</p>
+        </div>
+    </div>
+
+    <div class="dashboard-container" style="display:none;">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h2><i class="fa-solid fa-dice-d20"></i> BG-System</h2>
+            </div>
+            <ul class="nav-links">
+                <li id="navCustomerLink" style="display:none;"><a href="#" onclick="showPage('page-customer', this)"><i
+                            class="fa-solid fa-house"></i> Trang khách hàng</a></li>
+                <li id="navGamesLink"><a href="#" class="active" onclick="showPage('page-games', this)"><i
+                            class="fa-solid fa-layer-group"></i> Quản lý Kho Game</a></li>
+                <li id="navDrinksLink"><a href="#" onclick="showPage('page-drinks', this)"><i
+                            class="fa-solid fa-mug-hot"></i> Sản phẩm đồ uống</a></li>
+                <li id="navInvoicesLink"><a href="#" onclick="showPage('page-invoices', this)"><i
+                            class="fa-solid fa-file-invoice-dollar"></i> Hóa đơn & Đặt bàn</a></li>
+                <li id="navCustomersLink" style="display:none;"><a href="#"
+                        onclick="showPage('page-customers', this)"><i class="fa-solid fa-users"></i> Quản lý Khách
+                        hàng</a></li>
+            </ul>
+            <div class="user-info" id="sidebarUserInfo">
+                <p id="displayUser">Xin chào, <b>Admin</b></p>
+                <a href="javascript:void(0)" id="logoutButton"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</a>
+            </div>
+            <a href="javascript:void(0)" id="loginNavButton" onclick="showLoginScreen()" style="display:none; margin-top: 10px; color: white; background: #2d89ef; padding: 10px 14px; border-radius: 8px; text-align: center; display: inline-flex; align-items: center; justify-content: center; gap: 8px;"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</a>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <section id="dashboard-banner" class="dashboard-banner mb-4">
+                <div class="banner-copy">
+                    <p class="eyebrow">BG-System Dashboard</p>
+                    <h1>Quản lý Board Game thông minh</h1>
+                    <p class="banner-text">Giao diện mới nổi bật, hiện đại và vẫn giữ nguyên kết nối dữ liệu thêm / xoá
+                        / sửa với database cũ.</p>
+                </div>
+                <div class="banner-actions">
+                    <button class="btn-add" onclick="openGameModal()"><i class="fa-solid fa-plus"></i> Thêm Game
+                        Mới</button>
+                </div>
+            </section>
+            
+
+
+            <section id="customer-banner" class="customer-banner" style="display:none;">
+                <div class="customer-hero">
+                    <div class="hero-copy">
+                        <p class="eyebrow">Chào mừng khách hàng</p>
+                        <h1>Thư giãn cùng game và thức uống ngon</h1>
+                        <p class="banner-text">Khám phá game hot, đồ uống hấp dẫn và đặt bàn trống ngay trước khi đến.
+                        </p>
+                        <button class="btn-add"
+                            onclick="showPage('page-customer', document.getElementById('navCustomerLink').querySelector('a'))">Xem
+                            ngay</button>
+                    </div>
+                    <div class="hero-image">
+                        <img src="images/banner.jpg" id="bannerGameImage" alt="Board game">
+                    </div>
+                </div>
+            </section>
+
+            <!-- TRANG 1: QUẢN LÝ KHO GAME -->
+            <section id="page-games" class="content-page">
+                <header>
+                    <div class="page-header-group">
+                        <div>
+                            <h1>Quản lý Danh mục Board Game</h1>
+                            <p class="section-description">Tra cứu, tìm kiếm và cập nhật kho game nhanh chóng.</p>
+                        </div>
+                        <button class="btn-add" onclick="openGameModal()"><i class="fa-solid fa-plus"></i> Thêm Game
+                            Mới</button>
+                    </div>
+                </header>
+                <div class="page-toolbar">
+                    <div class="input-group search-group">
+                        <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
+                        <input id="gameSearchInput" type="text" class="form-control" placeholder="Tìm game theo tên..." oninput="onGameSearch()">
+                    </div>
+                    <div class="input-group filter-group">
+                        <span class="input-group-text">Trạng thái</span>
+                        <select id="gameStatusFilter" class="form-select" onchange="onGameSearch()">
+                            <option value="">Tất cả</option>
+                            <option value="Sẵn sàng">Sẵn sàng</option>
+                            <option value="Bảo trì">Bảo trì</option>
+                        </select>
+                    </div>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th class="name-column">Tên Game</th>
+                            <th class="price-column">Giá Thuê</th>
+                            <th class="status-column">Tình Trạng</th>
+                            <th class="action-column">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gameTableBody"></tbody>
+                </table>
+            </section>
+
+            <!-- TRANG 2: SẢN PHẨM ĐỒ UỐNG -->
+            <section id="page-drinks" class="content-page" style="display:none;">
+                <header>
+                    <div class="page-header-group">
+                        <div>
+                            <h1>Danh mục Đồ uống & Sản phẩm</h1>
+                            <p class="section-description">Quản lý menu đồ uống, cập nhật đơn giá và đơn vị tính nhanh.</p>
+                        </div>
+                        <button class="btn-add" style="background:#27ae60;" onclick="openDrinkModal()"><i
+                                class="fa-solid fa-plus"></i> Thêm Sản Phẩm</button>
+                    </div>
+                </header>
+                <div class="page-toolbar">
+                    <div class="input-group search-group">
+                        <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
+                        <input id="drinkSearchInput" type="text" class="form-control" placeholder="Tìm đồ uống theo tên..." oninput="onDrinkSearch()">
+                    </div>
+                    <div class="input-group filter-group">
+                        <span class="input-group-text">Đơn vị</span>
+                        <select id="drinkUnitFilter" class="form-select" onchange="onDrinkSearch()">
+                            <option value="">Tất cả</option>
+                            <option value="Ly">Ly</option>
+                            <option value="Chai">Chai</option>
+                            <option value="Lon">Lon</option>
+                        </select>
+                    </div>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th class="name-column">Tên Sản Phẩm</th>
+                            <th class="price-column">Đơn Giá</th>
+                            <th class="status-column">Đơn Vị Tính</th>
+                            <th class="action-column">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="drinkTableBody"></tbody>
+                </table>
+            </section>
+
+            <!-- TRANG 3: HÓA ĐƠN & ĐẶT BÀN -->
+            <section id="page-invoices" class="content-page" style="display:none;">
+                <header>
+                    <h1>Hóa đơn & Quản lý bàn</h1>
+                </header>
+                <div class="invoice-layout">
+                    <div class="invoice-list-panel">
+                        <div class="panel-header">Hóa đơn có sẵn</div>
+                        <ul id="invoiceList" class="invoice-list">
+                            <li class="empty-text">Đang tải danh sách hóa đơn...</li>
+                        </ul>
+                    </div>
+
+                    <div class="invoice-detail-panel" id="invoicePanel">
+                        <div id="print-area">
+                            <h2>HÓA ĐƠN</h2>
+                            <p>Mã HD: <b id="displayMaHD">---</b></p>
+                            <p>Bàn: <span id="displayBan">---</span></p>
+                            <p>Nhân viên: <span id="displayNV">---</span></p>
+                            <p>Khách hàng: <span id="displayKH">---</span></p>
+                            <p>Giờ vào: <span id="displayGioVao">---</span></p>
+                            <p>Giờ ra: <span id="displayGioRa">---</span></p>
+                            <p>Trạng thái thanh toán:
+                                <select id="invoicePaymentStatus" onchange="updateInvoiceActionButton(this.value)">
+                                    <option value="Chưa thanh toán">Chưa thanh toán</option>
+                                    <option value="Đã thanh toán">Đã thanh toán</option>
+                                </select>
+                            </p>
+                            <hr>
+                            <div id="itemDetails">
+                                <p class="empty-text">Chọn một hóa đơn để xem...</p>
+                            </div>
+                            <hr>
+                            <h3 class="invoice-total">Tổng: <span id="displayTongTien">0</span> VNĐ</h3>
+                        </div>
+                        <button id="invoiceStatusButton" onclick="saveInvoiceStatusAndPrint()"
+                            class="btn-save full-width">
+                            <i class="fa-solid fa-print"></i> Thanh toán & In
+                        </button>
+                        <button id="invoiceDeleteButton" onclick="deleteSelectedInvoice()" class="btn-delete full-width"
+                            style="display:none; margin-top:12px;">
+                            <i class="fa-solid fa-trash"></i> Xóa hóa đơn
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- TRANG KHÁCH HÀNG -->
+            <section id="page-customer" class="content-page" style="display:none;">
+                <div class="customer-welcome">
+                    <div class="customer-grid">
+                        <div class="customer-card highlight">
+                            <h2>Game nổi bật</h2>
+                            <p>Chọn ngay những board game thú vị để khám phá không gian giải trí cùng bạn bè.</p>
+                            <div class="product-gallery" id="customerGameGallery"></div>
+                        </div>
+                        <div class="customer-card">
+                            <h2>Đồ uống ngon miệng</h2>
+                            <p>Thưởng thức đồ uống tươi mát, phù hợp cho cả buổi chơi game dài.</p>
+                            <div class="product-gallery" id="customerDrinkGallery"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="customer-section">
+                    <div class="section-header">
+                        <h2>Tình trạng bàn hiện tại</h2>
+                        <p>Xem chi tiết trạng thái mọi bàn theo dữ liệu bàn và hóa đơn đang phục vụ.</p>
+                        <div class="table-summary" id="customerTableSummary">
+                            <div><span id="tableAvailableCount">0</span> bàn trống</div>
+                            <div><span id="tableBusyCount">0</span> đang có khách</div>
+                        </div>
+                    </div>
+                    <div class="table-grid" id="customerTableStatus"></div>
+                </div>
+
+                <div class="customer-section">
+                    <div class="section-header">
+                        <h2>Đặt bàn của bạn</h2>
+                        <p>Xem các đặt bàn hiện tại và hủy khi cần.</p>
+                    </div>
+                    <div id="customerBookingList" class="booking-list"></div>
+                </div>
+            </section>
+
+            <!-- TRANG QUẢN LÝ KHÁCH HÀNG -->
+            <section id="page-customers" class="content-page" style="display:none;">
+                <header>
+                    <h1>Quản lý Khách hàng</h1>
+                </header>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên Khách hàng</th>
+                            <th>Số điện thoại</th>
+                            <th>Điểm tích lũy</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customerTableBody"></tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal cho Game -->
+    <div id="gameModal" class="modal">
+        <div class="modal-content">
+            <h2 id="gameModalTitle">Thêm Game Mới</h2>
+            <div class="form-group"><label>Tên Game:</label><input type="text" id="gameName"></div>
+            <div class="form-group"><label>Giá thuê:</label><input type="number" id="gamePrice"></div>
+            <div class="form-group">
+                <label>Tình trạng:</label>
+                <select id="gameStatus">
+                    <option value="Sẵn sàng">Sẵn sàng</option>
+                    <option value="Bảo trì">Bảo trì</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button onclick="saveGame()" class="btn-add">Lưu</button>
+                <button onclick="closeModal('gameModal')" class="btn-delete" style="background:#95a5a6;">Hủy</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal cho Đồ uống -->
+    <div id="drinkModal" class="modal">
+        <div class="modal-content">
+            <h2 id="drinkModalTitle">Thêm Sản Phẩm</h2>
+            <div class="form-group"><label>Tên Sản Phẩm:</label><input type="text" id="drinkName"></div>
+            <div class="form-group"><label>Đơn Giá:</label><input type="number" id="drinkPrice"></div>
+            <div class="form-group"><label>Đơn Vị Tính:</label><input type="text" id="drinkUnit"
+                    placeholder="Ly, Lon, Chai..."></div>
+            <div class="modal-footer">
+                <button onclick="saveDrink()" class="btn-add" style="background:#27ae60;">Lưu</button>
+                <button onclick="closeModal('drinkModal')" class="btn-delete" style="background:#95a5a6;">Hủy</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal chi tiết khách hàng -->
+    <div id="customerDetailModal" class="modal">
+        <div class="modal-content">
+            <h2 id="customerDetailTitle">Chi tiết sản phẩm</h2>
+            <p id="customerDetailSubtitle" class="eyebrow">Giới thiệu</p>
+            <img id="customerDetailImage" class="modal-detail-image" src="" alt="">
+            <p id="customerDetailDescription">Mô tả sản phẩm sẽ được hiển thị ở đây.</p>
+            <ul id="customerDetailMeta" class="customer-detail-meta"></ul>
+            <div class="modal-footer">
+                <button onclick="closeCustomerDetailModal()" class="btn-cancel">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3"></div>
+    <script src="app.js"></script>
+</body>
+</html>
+
