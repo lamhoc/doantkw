@@ -7,20 +7,11 @@ const swaggerJsdoc = require('swagger-jsdoc');
 
 const app = express();
 
-const poolConfig = {
-    connectionString: process.env.DB_CONNECTION_STRING || 'postgresql://localhost/ql_boardgame'
-};
+const connectionString = process.env.DB_CONNECTION_STRING || process.env.DATABASE_URL || 'postgresql://localhost/ql_boardgame';
+const poolConfig = { connectionString };
 
-if (process.env.DB_CONNECTION_STRING) {
-    try {
-        const url = new URL(process.env.DB_CONNECTION_STRING);
-        const host = url.hostname.toLowerCase();
-        if (host !== 'localhost' && host !== '127.0.0.1' && host !== '::1') {
-            poolConfig.ssl = { rejectUnauthorized: false };
-        }
-    } catch (err) {
-        poolConfig.ssl = { rejectUnauthorized: false };
-    }
+if (connectionString && !connectionString.includes('localhost') && !connectionString.includes('127.0.0.1') && !connectionString.includes('::1')) {
+    poolConfig.ssl = { rejectUnauthorized: false };
 }
 
 const pool = new Pool(poolConfig);

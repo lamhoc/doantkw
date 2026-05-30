@@ -3,9 +3,9 @@ const path = require('path');
 const { Pool } = require('pg');
 
 async function run() {
-  const conn = process.argv[2] || process.env.DB_CONNECTION_STRING;
+  const conn = process.argv[2] || process.env.DB_CONNECTION_STRING || process.env.DATABASE_URL;
   if (!conn) {
-    console.error('Usage: node import-schema.js <connection_string>\nOr set DB_CONNECTION_STRING environment variable');
+    console.error('Usage: node import-schema.js <connection_string>\nOr set DB_CONNECTION_STRING or DATABASE_URL environment variable');
     process.exit(1);
   }
 
