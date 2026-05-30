@@ -1,12 +1,12 @@
 ﻿const express = require('express');
-const sql = require('mssql/msnodesqlv8');
+const sql = process.env.DB_CONNECTION_STRING ? require('mssql') : require('mssql/msnodesqlv8');
 const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
 
 const app = express();
 const config = {
-    connectionString: 'Driver={SQL Server Native Client 11.0};Server=DESKTOP-DKDCA09\\SQLEXPRESS;Database=QL_BoardGame;Trusted_Connection=yes;'
+    connectionString: process.env.DB_CONNECTION_STRING || 'Driver={SQL Server Native Client 11.0};Server=DESKTOP-DKDCA09\\SQLEXPRESS;Database=QL_BoardGame;Trusted_Connection=yes;'
 };
 
 const swaggerOptions = {
@@ -680,7 +680,8 @@ app.use((err, req, res, next) => {
     res.status(500).json({ success: false, message: 'Đã xảy ra lỗi hệ thống, vui lòng thử lại sau.' });
 });
 
-app.listen(3000, () => {
-    console.log('🚀 Server đang chạy tại http://localhost:3000');
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`🚀 Server đang chạy tại http://localhost:${PORT}`);
 });
 
