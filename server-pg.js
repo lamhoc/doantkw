@@ -304,7 +304,7 @@ app.post('/api/book-table', async (req, res) => {
         return sendError(res, 500, 'Đã xảy ra lỗi hệ thống, vui lòng thử lại sau.');
     }
 });
-
+/*lấy*/
 app.get('/api/boardgames', async (req, res) => {
     try {
         const result = await pool.query(

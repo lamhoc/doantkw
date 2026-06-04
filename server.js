@@ -371,7 +371,7 @@ app.put('/api/boardgames/:id', authorize(['admin', 'staff']), async (req, res) =
         return sendError(res, 500, 'Đã xảy ra lỗi hệ thống, vui lòng thử lại sau.');
     }
 });
-
+/*xoa*/
 app.delete('/api/boardgames/:id', authorize(['admin']), async (req, res) => {
     try {
         await poolConnect;
