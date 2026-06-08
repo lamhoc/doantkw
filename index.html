@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hệ Thống Quản Lý Board Game - BG-System</title>
-    <!-- Khởi động 5 CSS -->
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -14,16 +14,9 @@
     <style>
         /* Global Spinner */
         #globalSpinner {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.8);
-            z-index: 9999;
-            display: none;
-            align-items: center;
-            justify-content: center;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.8); z-index: 9999;
+            display: none; align-items: center; justify-content: center;
         }
     </style>
 </head>
@@ -52,20 +45,16 @@
                         placeholder="Nguyễn Văn A"></div>
                 <div class="form-group"><label>Số điện thoại:</label><input type="text" id="loginPhone"
                         placeholder="0987654321"></div>
-                <button class="btn-save full-width" onclick="registerCustomer()" style="margin-bottom: 10px;">Đăng ký
-                    khách hàng</button>
+                <button class="btn-save full-width" onclick="registerCustomer()" style="margin-bottom: 10px;">Đăng ký khách hàng</button>
             </div>
             <button class="btn-add full-width" onclick="login()">Đăng nhập</button>
-            <button class="btn-delete full-width" onclick="showGuestDashboard()"
-                style="margin-top: 10px; background: #95a5a6; border: none; border-radius: 8px; cursor: pointer; color: white; padding: 12px; font-weight: 600;">Quay
-                lại trang chủ</button>
-            <p class="login-note">Khách hàng đăng nhập bằng số điện thoại hoặc đăng ký mới bằng họ tên và số điện thoại.
-                Nhân viên/Admin sử dụng tài khoản và mật khẩu.</p>
+            <button class="btn-delete full-width" onclick="showGuestDashboard()" style="margin-top: 10px; background: #95a5a6; border: none; border-radius: 8px; cursor: pointer; color: white; padding: 12px; font-weight: 600;">Quay lại trang chủ</button>
+            <p class="login-note">Khách hàng đăng nhập bằng số điện thoại hoặc đăng ký mới bằng họ tên và số điện thoại. Nhân viên/Admin sử dụng tài khoản và mật khẩu.</p>
         </div>
     </div>
 
     <div class="dashboard-container" style="display:none;">
-        <!-- Thanh bên -->
+        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="logo">
                 <h2><i class="fa-solid fa-dice-d20"></i> BG-System</h2>
@@ -85,15 +74,12 @@
             </ul>
             <div class="user-info" id="sidebarUserInfo">
                 <p id="displayUser">Xin chào, <b>Admin</b></p>
-                <a href="javascript:void(0)" id="logoutButton"><i class="fa-solid fa-right-from-bracket"></i> Đăng
-                    xuất</a>
+                <a href="javascript:void(0)" id="logoutButton"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</a>
             </div>
-            <a href="javascript:void(0)" id="loginNavButton" onclick="showLoginScreen()"
-                style="display:none; margin-top: 10px; color: white; background: #2d89ef; padding: 10px 14px; border-radius: 8px; text-align: center; display: inline-flex; align-items: center; justify-content: center; gap: 8px;"><i
-                    class="fa-solid fa-right-to-bracket"></i> Đăng nhập</a>
+            <a href="javascript:void(0)" id="loginNavButton" onclick="showLoginScreen()" style="display:none; margin-top: 10px; color: white; background: #2d89ef; padding: 10px 14px; border-radius: 8px; text-align: center; display: inline-flex; align-items: center; justify-content: center; gap: 8px;"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</a>
         </aside>
 
-        <!-- Nội dung chính -->
+        <!-- Main Content -->
         <main class="main-content">
             <section id="dashboard-banner" class="dashboard-banner mb-4">
                 <div class="banner-copy">
@@ -107,7 +93,7 @@
                         Mới</button>
                 </div>
             </section>
-
+            
 
 
             <section id="customer-banner" class="customer-banner" style="display:none;">
@@ -142,8 +128,7 @@
                 <div class="page-toolbar">
                     <div class="input-group search-group">
                         <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
-                        <input id="gameSearchInput" type="text" class="form-control" placeholder="Tìm game theo tên..."
-                            oninput="onGameSearch()">
+                        <input id="gameSearchInput" type="text" class="form-control" placeholder="Tìm game theo tên..." oninput="onGameSearch()">
                     </div>
                     <div class="input-group filter-group">
                         <span class="input-group-text">Trạng thái</span>
@@ -174,8 +159,7 @@
                     <div class="page-header-group">
                         <div>
                             <h1>Danh mục Đồ uống & Sản phẩm</h1>
-                            <p class="section-description">Quản lý menu đồ uống, cập nhật đơn giá và đơn vị tính nhanh.
-                            </p>
+                            <p class="section-description">Quản lý menu đồ uống, cập nhật đơn giá và đơn vị tính nhanh.</p>
                         </div>
                         <button class="btn-add" style="background:#27ae60;" onclick="openDrinkModal()"><i
                                 class="fa-solid fa-plus"></i> Thêm Sản Phẩm</button>
@@ -184,8 +168,7 @@
                 <div class="page-toolbar">
                     <div class="input-group search-group">
                         <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
-                        <input id="drinkSearchInput" type="text" class="form-control"
-                            placeholder="Tìm đồ uống theo tên..." oninput="onDrinkSearch()">
+                        <input id="drinkSearchInput" type="text" class="form-control" placeholder="Tìm đồ uống theo tên..." oninput="onDrinkSearch()">
                     </div>
                     <div class="input-group filter-group">
                         <span class="input-group-text">Đơn vị</span>
@@ -370,5 +353,5 @@
     <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3"></div>
     <script src="app.js"></script>
 </body>
-
 </html>
+
